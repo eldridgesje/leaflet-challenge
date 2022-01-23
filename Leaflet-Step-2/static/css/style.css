@@ -1,0 +1,36 @@
+body {
+  padding: 0;
+  margin: 0;
+}
+
+#map,
+body,
+html {
+  height: 100%;
+}
+
+/*Legend specific*/
+.legend {
+  padding: 8px 8px 8px 8px;
+  font: 18px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+  line-height: 24px;
+  color: #444;
+}
+
+.legend h4 {
+  text-align: center;
+  font-size: 16px;
+  margin: 8px 8px 8px 8px;
+  color: #444;
+}
+
+.legend i {
+  width: 50px;
+  height: 24px;
+  float: left;
+  margin: 0 12px 0 0;
+}
