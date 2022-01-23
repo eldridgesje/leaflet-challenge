@@ -1,4 +1,4 @@
-// Initialize all of the LayerGroups we'll be using
+// Initialize quake LayerGroups
 var layers = {
     underTen: new L.LayerGroup(),
     tenToThirty: new L.LayerGroup(),
@@ -8,10 +8,10 @@ var layers = {
     ninetyPlus: new L.LayerGroup()
 };
 
-// Create the map with our layers
+// Create the map with all layers
 var myMap = L.map("map", {
     center: [0, 0],
-    zoom: 2,
+    zoom: 3,
     layers: [
     layers.underTen,
     layers.tenToThirty,
@@ -22,6 +22,8 @@ var myMap = L.map("map", {
     ]
 });
 
+// Define base map layer
+
 L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
 attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
 tileSize: 512,
@@ -31,102 +33,103 @@ id: "mapbox/streets-v11",
 accessToken: API_KEY
 }).addTo(myMap);
 
-
+// Get data for quakes
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson";
 
+// Assign all quakes to appropriate layer
 d3.json(url).then(function(response) {
 
 
-quakes = response["features"];
+    quakes = response["features"];
 
 
-var depthCategory;
+    var depthCategory;
 
 
-for (var i = 0; i < quakes.length; i++) {
-    var location = quakes[i].geometry;
-    var size = quakes[i].properties.mag;
-    var place = quakes[i].properties.place;
+    for (var i = 0; i < quakes.length; i++) {
+        var location = quakes[i].geometry;
+        var size = quakes[i].properties.mag;
+        var place = quakes[i].properties.place;
 
-    var newMarker
+        var newMarker
 
-    if (location.coordinates[2] < 10) {
-        depthCategory = "underTen";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size*2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "green",
-            weight: 1
-        })
+        if (location.coordinates[2] < 10) {
+            depthCategory = "underTen";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size*2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "green",
+                weight: 1
+            })
+        }
+
+        else if (location.coordinates[2] < 30) {
+            depthCategory = "tenToThirty";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size**2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "yellow",
+                weight: 1
+            })
+        }
+
+        else if (location.coordinates[2] < 50) {
+            depthCategory = "thirtyToFifty";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size**2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "orange",
+                weight: 1
+            })
+        }
+
+        else if (location.coordinates[2] < 70) {
+            depthCategory = "fiftyToSeventy";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size**2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "red",
+                weight: 1
+            })
+        }
+
+        else if (location.coordinates[2] < 90) {
+            depthCategory = "seventyToNinety";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size**2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "brown",
+                weight: 1
+            })
+        }
+
+        else {
+            depthCategory = "ninetyPlus";
+            newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
+                radius: (size**2),
+                fillOpacity: 1,
+                color: "black",
+                fillColor: "black",
+                weight: 1
+            })
+        }
+
+        // Add the new marker to the appropriate layer
+        newMarker.addTo(layers[depthCategory]);
+
+        // Bind a popup to the quake markers
+        newMarker.bindPopup(`Location: ${place}<br>Magnitude: ${size}<br>Depth: ${location.coordinates[2]}`);
+
     }
-
-    else if (location.coordinates[2] < 30) {
-        depthCategory = "tenToThirty";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size**2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "yellow",
-            weight: 1
-        })
-    }
-
-    else if (location.coordinates[2] < 50) {
-        depthCategory = "thirtyToFifty";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size**2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "orange",
-            weight: 1
-        })
-    }
-
-    else if (location.coordinates[2] < 70) {
-        depthCategory = "fiftyToSeventy";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size**2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "red",
-            weight: 1
-        })
-    }
-
-    else if (location.coordinates[2] < 90) {
-        depthCategory = "seventyToNinety";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size**2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "brown",
-            weight: 1
-        })
-    }
-
-    else {
-        depthCategory = "ninetyPlus";
-        newMarker = L.circleMarker([location.coordinates[1], location.coordinates[0]], {
-            radius: (size**2),
-            fillOpacity: 1,
-            color: "black",
-            fillColor: "black",
-            weight: 1
-        })
-    }
-
-    // Add the new marker to the appropriate layer
-    newMarker.addTo(layers[depthCategory]);
-
-    // Bind a popup to the marker that will  display on click. This will be rendered as HTML
-    newMarker.bindPopup(`Location: ${place}<br>Magnitude: ${size}<br>Depth: ${location.coordinates[2]}`);
-
-}
 
 });
 
-/*Legend specific*/
+// Add the legend
 var legend = L.control({ position: "bottomleft" });
 
 legend.onAdd = function(myMap) {

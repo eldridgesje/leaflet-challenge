@@ -1,4 +1,4 @@
-// Initialize all of the LayerGroups we'll be using
+// Initialize quake LayerGroups
 var underTen = new L.LayerGroup(),
     tenToThirty = new L.LayerGroup(),
     thirtyToFifty = new L.LayerGroup(),
@@ -6,9 +6,22 @@ var underTen = new L.LayerGroup(),
     seventyToNinety = new L.LayerGroup(),
     ninetyPlus = new L.LayerGroup();
 
+
+// Define LayerGroup for all quake categories
 var quakeLayers = L.layerGroup([underTen,tenToThirty,thirtyToFifty,fiftyToSeventy,seventyToNinety,ninetyPlus]);
 
+
+// Define base map layers
 var baseLayers = {
+    "Satellite Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+    tileSize: 512,
+    maxZoom: 18,
+    zoomOffset: -1,
+    id: "mapbox/satellite-v9",
+    accessToken: API_KEY
+    }),
+
     "Street Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
     tileSize: 512,
@@ -26,51 +39,49 @@ var baseLayers = {
     zoomOffset: -1,
     id: "mapbox/dark-v10",
     accessToken: API_KEY
-    }),
-
-
-    "Satellite Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-    tileSize: 512,
-    maxZoom: 18,
-    zoomOffset: -1,
-    id: "mapbox/satellite-v9",
-    accessToken: API_KEY
     })
 };
 
+// Define tectonic plate border layer
 var borderLayer = L.geoJSON("",{
     style: function() {
         return {color: "brown"}
     }
 });
 
-// Create the map with our layers
-var myMap = L.map("map", {
-    center: [0, 0],
-    zoom: 2,
-    layers: [baseLayers["Street Map"], borderLayer, quakeLayers]
 
-});
-
+// Add data to border layer
 d3.json("/static/resources/PB2002_boundaries.json").then(function(data) {
 	borderLayer.addData(data);
 	
 });
+
+// Create the map with all layers, including default base map
+var myMap = L.map("map", {
+    center: [0, 0],
+    zoom: 3,
+    layers: [baseLayers["Satellite Map"], borderLayer, quakeLayers]
+
+});
+
+// Group overlay layers
 
 var overlays = {
     "Earthquakes": quakeLayers,
     "Tectonic Plates": borderLayer
 };
 
+//Add layer controller
 
 L.control.layers(baseLayers, overlays, {
     collapsed: false
   }).addTo(myMap);
 
 
+// Get data for quakes
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson";
 
+// Assign all quakes to appropriate layer
 d3.json(url).then(function(response) {
 
 
@@ -159,14 +170,14 @@ d3.json(url).then(function(response) {
             newMarker.addTo(ninetyPlus);
         }
 
-        // Bind a popup to the marker that will  display on click. This will be rendered as HTML
+        // Bind a popup to the quake markers
         newMarker.bindPopup(`Location: ${place}<br>Magnitude: ${size}<br>Depth: ${location.coordinates[2]}`);
 
     }
 
 });
 
-/*Legend specific*/
+// Add the legend
 var legend = L.control({ position: "bottomleft" });
 
 legend.onAdd = function(myMap) {
