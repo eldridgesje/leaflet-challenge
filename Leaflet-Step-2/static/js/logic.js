@@ -1,46 +1,72 @@
 // Initialize all of the LayerGroups we'll be using
-var layers = {
-    underTen: new L.LayerGroup(),
-    tenToThirty: new L.LayerGroup(),
-    thirtyToFifty: new L.LayerGroup(),
-    fiftyToSeventy: new L.LayerGroup(),
-    seventyToNinety: new L.LayerGroup(),
-    ninetyPlus: new L.LayerGroup()
+var underTen = new L.LayerGroup(),
+    tenToThirty = new L.LayerGroup(),
+    thirtyToFifty = new L.LayerGroup(),
+    fiftyToSeventy = new L.LayerGroup(),
+    seventyToNinety = new L.LayerGroup(),
+    ninetyPlus = new L.LayerGroup();
+
+var quakeLayers = L.layerGroup([underTen,tenToThirty,thirtyToFifty,fiftyToSeventy,seventyToNinety,ninetyPlus]);
+
+var baseLayers = {
+    "Street Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+    tileSize: 512,
+    maxZoom: 18,
+    zoomOffset: -1,
+    id: "mapbox/streets-v11",
+    accessToken: API_KEY
+    }),
+
+
+    "Dark Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+    tileSize: 512,
+    maxZoom: 18,
+    zoomOffset: -1,
+    id: "mapbox/dark-v10",
+    accessToken: API_KEY
+    }),
+
+
+    "Satellite Map": L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
+    tileSize: 512,
+    maxZoom: 18,
+    zoomOffset: -1,
+    id: "mapbox/satellite-v9",
+    accessToken: API_KEY
+    })
 };
 
+var borderLayer = L.geoJSON("",{
+    style: function() {
+        return {color: "brown"}
+    }
+});
 
 // Create the map with our layers
 var myMap = L.map("map", {
     center: [0, 0],
     zoom: 2,
-    layers: [
-    layers.underTen,
-    layers.tenToThirty,
-    layers.thirtyToFifty,
-    layers.fiftyToSeventy,
-    layers.seventyToNinety,
-    layers.ninetyPlus
-    ]
+    layers: [baseLayers["Street Map"], borderLayer, quakeLayers]
+
 });
 
-L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-tileSize: 512,
-maxZoom: 18,
-zoomOffset: -1,
-id: "mapbox/streets-v11",
-accessToken: API_KEY
-}).addTo(myMap);
-
-
-d3.json("./static/resources/PB2002_boundaries.json").then(function(data) {
-    L.geoJSON(data.features,{
-        style: function() {
-            return {color: "brown"}
-        }
-    }).addTo(myMap);
+d3.json("/static/resources/PB2002_boundaries.json").then(function(data) {
+	borderLayer.addData(data);
+	
 });
 
+var overlays = {
+    "Earthquakes": quakeLayers,
+    "Tectonic Plates": borderLayer
+};
+
+
+L.control.layers(baseLayers, overlays, {
+    collapsed: false
+  }).addTo(myMap);
 
 
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson";
@@ -67,9 +93,10 @@ d3.json(url).then(function(response) {
                 radius: (size*2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "green",
+                fillColor: "aqua",
                 weight: 1
             })
+            newMarker.addTo(underTen);
         }
 
         else if (location.coordinates[2] < 30) {
@@ -78,9 +105,10 @@ d3.json(url).then(function(response) {
                 radius: (size**2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "yellow",
+                fillColor: "lime",
                 weight: 1
             })
+            newMarker.addTo(tenToThirty);
         }
 
         else if (location.coordinates[2] < 50) {
@@ -89,9 +117,10 @@ d3.json(url).then(function(response) {
                 radius: (size**2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "orange",
+                fillColor: "yellow",
                 weight: 1
             })
+            newMarker.addTo(thirtyToFifty);
         }
 
         else if (location.coordinates[2] < 70) {
@@ -100,9 +129,10 @@ d3.json(url).then(function(response) {
                 radius: (size**2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "red",
+                fillColor: "orange",
                 weight: 1
             })
+            newMarker.addTo(fiftyToSeventy);
         }
 
         else if (location.coordinates[2] < 90) {
@@ -111,9 +141,10 @@ d3.json(url).then(function(response) {
                 radius: (size**2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "brown",
+                fillColor: "red",
                 weight: 1
             })
+            newMarker.addTo(seventyToNinety);
         }
 
         else {
@@ -122,13 +153,11 @@ d3.json(url).then(function(response) {
                 radius: (size**2),
                 fillOpacity: 1,
                 color: "black",
-                fillColor: "black",
+                fillColor: "brown",
                 weight: 1
             })
+            newMarker.addTo(ninetyPlus);
         }
-
-        // Add the new marker to the appropriate layer
-        newMarker.addTo(layers[depthCategory]);
 
         // Bind a popup to the marker that will  display on click. This will be rendered as HTML
         newMarker.bindPopup(`Location: ${place}<br>Magnitude: ${size}<br>Depth: ${location.coordinates[2]}`);
